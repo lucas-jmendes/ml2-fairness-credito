@@ -1,0 +1,11 @@
+,linhas
+bruto,234614.0
+filtro lien_status in [1],173169.0
+filtro occupancy_type in [1],160000.0
+filtro business_or_commercial_purpose in [2],156301.0
+filtro open-end_line_of_credit in [2],146843.0
+filtro reverse_mortgage in [2],146820.0
+race definido,146820.0
+sem ausentes em loan_to_value_ratio,130730.0
+subamostra,50000.0
+taxa de negação,0.17706

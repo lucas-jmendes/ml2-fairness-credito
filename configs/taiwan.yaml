@@ -1,0 +1,52 @@
+# Configuração da base principal: Default of Credit Card Clients (Taiwan, UCI id 350).
+# Caminhos relativos são resolvidos a partir da raiz do repositório.
+
+dataset:
+  name: taiwan
+  loader: taiwan
+  url: https://archive.ics.uci.edu/static/public/350/default+of+credit+card+clients.zip
+  # SHA-256 do .zip baixado em 20/11/2026; o script de download confere este valor.
+  sha256: 56c885f84457f6680f8438f02bfcdac9579323d8a94465ee5f26e32baa727602
+  raw_dir: data/raw/taiwan
+  file: default of credit card clients.xls
+  header_row: 1                # a planilha tem duas linhas de cabeçalho (X1..X23 e os nomes)
+  target: default payment next month   # 1 = inadimplente no mês seguinte
+  # Atributos sensíveis (proposta, seção 5): sexo (principal) e idade abaixo de 25 anos
+  # (secundário, como em Kozodoi et al. 2022). Usados apenas na avaliação.
+  sensitive:
+    sex: {column: SEX, map: {1: male, 2: female}}
+    age: {column: AGE, below: 25, labels: [lt25, ge25]}
+  # Divisão estratificada por rótulo x sexo x faixa etária (os dois atributos avaliados).
+  stratify_by: [sex, age]
+  drop_columns: [ID]
+  # Fora das entradas do modelo. MARRIAGE fica como entrada (ver docs/decisoes.md).
+  exclude_from_features: [SEX, AGE]
+  categorical: [EDUCATION, MARRIAGE]
+  # Códigos não documentados na descrição original da base viram "outros".
+  recode:
+    EDUCATION: {0: 4, 5: 4, 6: 4}
+    MARRIAGE: {0: 3}
+
+split:
+  train: 0.6
+  val: 0.2
+  test: 0.2
+
+seeds: [0, 1, 2, 3, 4]
+
+models: [logreg, random_forest, xgboost, lightgbm, catboost]
+search_spaces_file: configs/search_spaces.yaml
+
+optimization:
+  n_trials: 100                # avaliações por estudo (mesmo orçamento em todos os braços)
+  storage_dir: results/optuna  # um arquivo SQLite por braço/semente; estudos retomáveis
+  n_jobs_model: 4              # threads por modelo
+  parallel_models: 4           # estudos de modelos diferentes rodando em paralelo (processos)
+
+arms:
+  a0:
+    sampler: tpe               # objetivo único: acurácia balanceada na validação
+    objective: balanced_accuracy
+
+output:
+  results_dir: results

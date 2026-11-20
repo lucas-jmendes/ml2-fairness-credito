@@ -1,0 +1,63 @@
+# Espaços de busca dos cinco modelos candidatos (iguais em A0, A1 e A2).
+# "search": hiperparâmetros sugeridos pelo Optuna; "fixed": valores fixos.
+# Tipos: int, float (com log opcional) e categorical.
+
+logreg:
+  search:
+    C: {type: float, low: 1.0e-4, high: 100.0, log: true}
+  fixed:
+    max_iter: 5000
+
+random_forest:
+  # Até 200 árvores sobre subamostras de 20% a 30% (proposta, seção 5: custo viável).
+  search:
+    n_estimators: {type: int, low: 50, high: 200}
+    max_depth: {type: int, low: 3, high: 20}
+    min_samples_leaf: {type: int, low: 1, high: 100, log: true}
+    max_features: {type: float, low: 0.1, high: 1.0}
+    max_samples: {type: float, low: 0.2, high: 0.3}
+  fixed:
+    bootstrap: true
+
+xgboost:
+  search:
+    n_estimators: {type: int, low: 50, high: 500}
+    learning_rate: {type: float, low: 0.01, high: 0.3, log: true}
+    max_depth: {type: int, low: 2, high: 10}
+    min_child_weight: {type: float, low: 1.0, high: 50.0, log: true}
+    subsample: {type: float, low: 0.5, high: 1.0}
+    colsample_bytree: {type: float, low: 0.5, high: 1.0}
+    reg_lambda: {type: float, low: 1.0e-3, high: 10.0, log: true}
+    reg_alpha: {type: float, low: 1.0e-3, high: 10.0, log: true}
+  fixed:
+    tree_method: hist
+    eval_metric: logloss
+
+lightgbm:
+  search:
+    n_estimators: {type: int, low: 50, high: 500}
+    learning_rate: {type: float, low: 0.01, high: 0.3, log: true}
+    num_leaves: {type: int, low: 8, high: 256, log: true}
+    min_child_samples: {type: int, low: 5, high: 200, log: true}
+    subsample: {type: float, low: 0.5, high: 1.0}
+    colsample_bytree: {type: float, low: 0.5, high: 1.0}
+    reg_lambda: {type: float, low: 1.0e-3, high: 10.0, log: true}
+    reg_alpha: {type: float, low: 1.0e-3, high: 10.0, log: true}
+  fixed:
+    subsample_freq: 1
+    deterministic: true
+    force_row_wise: true
+    verbose: -1
+
+catboost:
+  search:
+    iterations: {type: int, low: 50, high: 500}
+    learning_rate: {type: float, low: 0.01, high: 0.3, log: true}
+    # Limite 8 (padrão da biblioteca: 6): com profundidade 10 e 500 iterações um único
+    # treino levou 38 s (medido em 20/11/2026), o que inviabiliza o A2 no orçamento.
+    depth: {type: int, low: 3, high: 8}
+    l2_leaf_reg: {type: float, low: 1.0, high: 30.0, log: true}
+    random_strength: {type: float, low: 1.0e-2, high: 10.0, log: true}
+  fixed:
+    verbose: 0
+    allow_writing_files: false
