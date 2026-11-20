@@ -1,0 +1,62 @@
+# Base HMDA (Home Mortgage Disclosure Act), Geórgia, 2024. Teste de viabilidade (20/11/2026).
+# Fonte: API do HMDA Data Browser (CFPB/FFIEC), dados públicos da LAR.
+# Caminhos relativos são resolvidos a partir da raiz do repositório.
+
+dataset:
+  name: hmda
+  loader: hmda
+  # O filtro da API já restringe a pedidos com decisão (1, 2, 3) e raça derivada branca ou negra.
+  url: https://ffiec.cfpb.gov/v2/data-browser-api/view/csv?states=GA&years=2024&actions_taken=1,2,3&races=White,Black%20or%20African%20American
+  # SHA-256 do CSV baixado em 20/11/2026 (o CFPB pode republicar o snapshot; o script avisa).
+  sha256: 7ea3d47e77c2a4aa76660a952448ca97ed8ff58388f87c250dfbbde6076480b1
+  raw_dir: data/raw/hmda
+  raw_file: hmda_GA_2024_raw.csv
+  processed_file: data/processed/hmda_GA_2024.csv
+
+  # População homogênea: primeira hipoteca, residência principal, sem fins comerciais, sem
+  # linha de crédito rotativo nem hipoteca reversa.
+  filters:
+    lien_status: [1]
+    occupancy_type: [1]
+    business_or_commercial_purpose: [2]
+    open-end_line_of_credit: [2]
+    reverse_mortgage: [2]
+
+  target: {column: action_taken, positive: [3], negative: [1, 2]}   # 1 = negado
+
+  sensitive:
+    race: {column: derived_race, map: {White: white, Black or African American: black}}
+    # Sexo secundário: "Joint" e "Sex Not Available" ficam fora da métrica de sexo.
+    sex: {column: derived_sex, map: {Male: male, Female: female}}
+  stratify_by: [race]
+
+  features: [loan_amount, income, debt_to_income_ratio, loan_to_value_ratio, loan_term, loan_type, loan_purpose]
+  categorical: [loan_type, loan_purpose]
+
+  # Subamostra estratificada (rótulo x raça) com semente própria e fixa.
+  sample_size: 50000
+  sample_seed: 2026
+
+split:
+  train: 0.6
+  val: 0.2
+  test: 0.2
+
+seeds: [0, 1, 2, 3, 4]
+
+models: [logreg, random_forest, xgboost, lightgbm, catboost]
+search_spaces_file: configs/search_spaces.yaml
+
+optimization:
+  n_trials: 100
+  storage_dir: results/optuna
+  n_jobs_model: 4
+  parallel_models: 4
+
+arms:
+  a0:
+    sampler: tpe
+    objective: balanced_accuracy
+
+output:
+  results_dir: results

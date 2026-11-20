@@ -221,3 +221,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- Projeto ml2-fairness-credito ----
+# Dados brutos e processados ficam fora do git (baixe com scripts/download_taiwan.py)
+data/raw/
+data/processed/
+# PDFs de artigos (direitos autorais dos autores/editoras)
+docs/artigos/
+# Artefatos de bibliotecas
+catboost_info/
+# Arquivos temporários do SQLite (os .db dos estudos do Optuna SÃO versionados)
+*.db-journal
+*.db-wal
+*.db-shm
+# Editor / SO
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

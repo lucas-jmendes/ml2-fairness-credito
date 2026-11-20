@@ -1,0 +1,11 @@
+# Análise de sensibilidade: HMDA sem os pedidos com LTV ausente.
+# Motivo: na base principal, quando o LTV está ausente a taxa de negação é 47,8%, contra 17,7%
+# quando ele existe. A ausência provavelmente reflete o processo (pedido negado antes da
+# avaliação do imóvel), não o risco. Se o viés por raça se mantiver aqui, o achado não
+# depende desse possível vazamento.
+base_config: configs/hmda.yaml
+
+dataset:
+  name: hmda_sens_ltv
+  processed_file: data/processed/hmda_GA_2024_sens_ltv.csv
+  drop_missing: [loan_to_value_ratio]
